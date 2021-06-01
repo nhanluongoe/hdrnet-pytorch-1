@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import torch
-import torch.nn as nn
 from torch.optim import SGD, Adam
 from torch.utils.data import DataLoader
 
