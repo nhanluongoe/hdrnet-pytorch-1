@@ -1,7 +1,7 @@
 import os
 import sys
 from test import test
-import custom_loss
+import custom_loss as myloss
 
 import cv2
 import matplotlib.pyplot as plt
@@ -22,8 +22,8 @@ def train(params=None):
 
     device = torch.device("cuda")
 
-    _L_exp = L_exp(16,0.6)
-    _L_color = L_color()
+    L_exp = myloss.L_exp(16,0.6)
+    L_color = myloss.L_color()
 
     train_dataset = HDRDataset(params['dataset'], params=params, suffix=params['dataset_suffix'])
     train_loader = DataLoader(train_dataset, batch_size=params['batch_size'], shuffle=True)
@@ -37,7 +37,7 @@ def train(params=None):
         model.load_state_dict(state_dict)
     model.to(device)
 
-    mseloss = torch.nn.MSELoss()
+    mse_loss = torch.nn.MSELoss()
     optimizer = Adam(model.parameters(), params['lr'])
 
     count = 0
@@ -51,10 +51,10 @@ def train(params=None):
             t = target.to(device)
             res = model(low, full)
 
-            loss_exp = 0.1*torch.mean(_L_exp(res))
-            loss_col = 0.2*torch.mean(_L_color(res))
+            exp_loss = torch.mean(L_exp(res))
+            col_loss = torch.mean(L_color(res))
             
-            total_loss = mseloss(res, t) + loss_exp + loss_col
+            total_loss = mse_loss(res, t) + 0.1 * exp_loss + 0.2 * col_loss
             total_loss.backward()
 
             if (count+1) % params['log_interval'] == 0:
